@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;">
+<title>Special Considerations Wrestler</title>
+<style>
+  * { box-sizing: border-box; }
+
+  :root {
+    --bg: #ffffff;
+    --fg: #0a0a0a;
+    --muted: #666666;
+    --border: #e5e5e5;
+    --border-strong: #000000;
+    --accent: #0066ff;
+    --error: #dc2626;
+    --success: #16a34a;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 840px;
+    margin: 0 auto;
+    padding: 60px 32px;
+    flex: 1;
+  }
+
+  /* Header */
+  header {
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.4px;
+  }
+
+  .version-tag {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--border);
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: 8px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.3px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 16px;
+    font-style: italic;
+    margin: 0 0 12px 0;
+  }
+
+  .meta-author {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* Drop zone */
+  .dropzone {
+    border: 1px solid var(--border-strong);
+    padding: 48px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 32px;
+    background: var(--bg);
+  }
+
+  .dropzone:hover { background: #fafafa; }
+  .dropzone:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .dropzone.dragover {
+    background: #f0f7ff;
+    border-color: var(--accent);
+  }
+
+  .dropzone.loaded {
+    border-color: var(--fg);
+    background: var(--bg);
+  }
+
+  .dropzone-text {
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .dropzone.loaded .dropzone-text { color: var(--fg); font-weight: 500; }
+
+  .dropzone-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .dropzone.loaded .dropzone-hint { display: none; }
+
+  .dropzone input[type="file"] { display: none; }
+
+  /* Filters section */
+  .filter-section {
+    border: 1px solid var(--border-strong);
+    margin-bottom: 32px;
+  }
+
+  .filter-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-strong);
+    background: var(--bg);
+  }
+
+  .filter-title {
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+  }
+
+  .filter-body {
+    padding: 20px 16px;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filter-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  select {
+    width: 100%;
+    padding: 9px 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    color: var(--fg);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+
+  select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  select:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .assessment-group {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  .assessment-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  /* Actions */
+  .actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 16px;
+    background: #fafafa;
+    border-top: 1px solid var(--border);
+  }
+
+  button {
+    padding: 11px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    color: var(--fg);
+    transition: all 0.15s;
+  }
+
+  button:hover {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  button:disabled:hover {
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  button.primary {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  button.primary:hover:not(:disabled) {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .record-count {
+    font-size: 13px;
+    color: var(--muted);
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Table section */
+  .table-section {
+    border: 1px solid var(--border-strong);
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .table-header {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-strong);
+    background: var(--bg);
+  }
+
+  .table-title {
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+  }
+
+  .table-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    margin-left: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead {
+    background: var(--fg);
+    color: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: #fafafa; }
+  tbody tr:nth-child(even) { background: #fafafa; }
+  tbody tr:nth-child(even):hover { background: #f0f0f0; }
+
+  td {
+    padding: 8px 12px;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  td.font-medium {
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  .table-wrap {
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .hidden { display: none !important; }
+
+  /* Screen-reader only */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Placeholder state — greyed out, non-interactive */
+  .placeholder {
+    position: relative;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.4;
+    filter: grayscale(100%);
+  }
+
+  /* Mobile */
+  @media (max-width: 640px) {
+    .container { padding: 32px 20px; }
+    h1 { font-size: 26px; }
+    .filters { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .actions { flex-wrap: wrap; }
+    button { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Special Considerations Wrestler <span class="version-tag">v1.0.0</span></h1>
+    <div class="meta-author">by Januar Harianto</div>
+  </header>
+
+  <main>
+  <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload CSV file. Drag and drop or press Enter to browse.">
+    <p class="dropzone-text" id="dropzone-text">Drag &amp; drop CSV here, or click to upload</p>
+    <p class="dropzone-hint">Accepts .csv files from ServiceNow spec cons exports</p>
+    <input type="file" id="fileInput" accept=".csv" aria-hidden="true" tabindex="-1">
+  </div>
+  <div aria-live="polite" id="liveStatus" class="sr-only"></div>
+
+  <!-- Placeholder: visible but greyed out before file load -->
+  <div id="placeholderControls" class="placeholder" aria-hidden="true">
+    <div class="filter-section">
+      <div class="filter-header">
+        <h3 class="filter-title">Filters</h3>
+      </div>
+      <div class="filter-body">
+        <div class="filters">
+          <div class="filter-group">
+            <label>Unit</label>
+            <select disabled><option>BIOL2022</option></select>
+          </div>
+          <div class="filter-group">
+            <label>Semester</label>
+            <select disabled><option>S2C</option></select>
+          </div>
+          <div class="filter-group">
+            <label>Year</label>
+            <select disabled><option>2025</option></select>
+          </div>
+          <div class="filter-group">
+            <label>Mode</label>
+            <select disabled><option>ND</option></select>
+          </div>
+          <div class="filter-group">
+            <label>Location</label>
+            <select disabled><option>CC</option></select>
+          </div>
+        </div>
+        <div class="assessment-group">
+          <label>Assessment</label>
+          <select disabled><option>Written scientific report (Report 2)</option></select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" disabled>Download CSV</button>
+        <button disabled>Reset</button>
+        <span class="record-count">3 records</span>
+      </div>
+    </div>
+
+    <div class="table-section" style="margin-top:0;">
+      <div class="table-header">
+        <div style="display:flex;align-items:center;">
+          <h3 class="table-title">Preview</h3>
+          <span class="table-subtitle">3 rows</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Section Id</th><th scope="col">Section name</th><th scope="col">Student name</th><th scope="col">UniKey</th></tr>
+          </thead>
+          <tbody>
+            <tr><td></td><td>Written scientific report (Report 2) - Nov-12 - Simple Extension</td><td></td><td class="font-medium">abcd1234</td></tr>
+            <tr><td></td><td>Written scientific report (Report 2) - Nov-15 - Extension of time</td><td></td><td class="font-medium">efgh5678</td></tr>
+            <tr><td></td><td>Written scientific report (Report 2) - Nov-12 - Simple Extension</td><td></td><td class="font-medium">ijkl9012</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real controls: hidden until file load -->
+  <div id="controls" class="hidden">
+    <div class="filter-section">
+      <div class="filter-header">
+        <h3 class="filter-title">Filters</h3>
+      </div>
+      <div class="filter-body">
+        <div class="filters">
+          <div class="filter-group">
+            <label for="filterUnit">Unit</label>
+            <select id="filterUnit"><option value="">All</option></select>
+          </div>
+          <div class="filter-group">
+            <label for="filterSemester">Semester</label>
+            <select id="filterSemester"><option value="">All</option></select>
+          </div>
+          <div class="filter-group">
+            <label for="filterYear">Year</label>
+            <select id="filterYear"><option value="">All</option></select>
+          </div>
+          <div class="filter-group">
+            <label for="filterMode">Mode</label>
+            <select id="filterMode"><option value="">All</option></select>
+          </div>
+          <div class="filter-group">
+            <label for="filterLocation">Location</label>
+            <select id="filterLocation"><option value="">All</option></select>
+          </div>
+        </div>
+
+        <div class="assessment-group">
+          <label for="filterAssessment">Assessment</label>
+          <select id="filterAssessment"><option value="">Select an assessment</option></select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="btnDownload" disabled>Download CSV</button>
+        <button id="btnReset">Reset</button>
+        <span class="record-count" id="recordCount"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="previewSection" class="table-section hidden">
+    <div class="table-header">
+      <div style="display:flex;align-items:center;">
+        <h3 class="table-title">Preview</h3>
+        <span class="table-subtitle" id="previewCount"></span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th scope="col">Section Id</th><th scope="col">Section name</th><th scope="col">Student name</th><th scope="col">UniKey</th></tr>
+        </thead>
+        <tbody id="previewBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  </main>
+  <footer class="footer">MIT License</footer>
+</div>
+
+<script>
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let rawData = [];
+let filteredOutput = [];
+
+// --- CSV parsing ---
+function parseCSV(text) {
+  const rows = [];
+  let current = '';
+  let inQuotes = false;
+  let row = [];
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < text.length && text[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        row.push(current);
+        current = '';
+      } else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n') i++;
+        row.push(current);
+        current = '';
+        if (row.length > 1 || row[0] !== '') rows.push(row);
+        row = [];
+      } else {
+        current += ch;
+      }
+    }
+  }
+  row.push(current);
+  if (row.length > 1 || row[0] !== '') rows.push(row);
+  return rows;
+}
+
+function csvToObjects(text) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return [];
+  const headers = rows[0];
+  return rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (row[i] || '').trim(); });
+    return obj;
+  });
+}
+
+// --- Parse availability field: UNIT-SEMESTER-YEAR-MODE-LOCATION ---
+function parseAvailability(av) {
+  const parts = av.split('-');
+  if (parts.length < 5) return null;
+  return {
+    unit: parts[0],
+    semester: parts[1],
+    year: parts[2],
+    mode: parts[3],
+    location: parts[parts.length - 1]
+  };
+}
+
+// --- Extract UniKey from u_ticket_contact: "Name - unikey" ---
+function extractUniKey(contact) {
+  const match = contact.match(/- (\w+)$/);
+  return match ? match[1] : contact;
+}
+
+// --- Format extension date: "DD-MM-YYYY" -> "Mon-DD" ---
+function formatExtDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.trim().split('-');
+  if (parts.length < 3) return dateStr;
+  const day = parseInt(parts[0], 10);
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  if (monthIdx < 0 || monthIdx > 11) return dateStr;
+  return MONTHS[monthIdx] + '-' + String(day).padStart(2, '0');
+}
+
+// --- Populate filter dropdowns (cascading) ---
+// Each dropdown only shows values that exist in valid combination with the others.
+function populateFilters() {
+  const unit = document.getElementById('filterUnit').value;
+  const semester = document.getElementById('filterSemester').value;
+  const year = document.getElementById('filterYear').value;
+  const mode = document.getElementById('filterMode').value;
+  const location = document.getElementById('filterLocation').value;
+
+  // Parse all approved rows into availability objects once
+  const parsed = [];
+  rawData.forEach(r => {
+    if (r.state !== 'Approved') return;
+    const av = parseAvailability(r.availability);
+    if (av) parsed.push({ av, row: r });
+  });
+
+  // For each filter, collect valid values based on ALL OTHER current selections
+  function validValues(field) {
+    const vals = new Set();
+    parsed.forEach(({ av }) => {
+      if (field !== 'unit' && unit && av.unit !== unit) return;
+      if (field !== 'semester' && semester && av.semester !== semester) return;
+      if (field !== 'year' && year && av.year !== year) return;
+      if (field !== 'mode' && mode && av.mode !== mode) return;
+      if (field !== 'location' && location && av.location !== location) return;
+      vals.add(av[field]);
+    });
+    return vals;
+  }
+
+  fillSelect('filterUnit', sorted(validValues('unit')), unit);
+  fillSelect('filterSemester', sorted(validValues('semester')), semester);
+  fillSelect('filterYear', sorted([...validValues('year')], (a, b) => b - a), year);
+  fillSelect('filterMode', sorted(validValues('mode')), mode);
+  fillSelect('filterLocation', sorted(validValues('location')), location);
+
+  // Update assessments based on the now-valid filter combination
+  updateAssessments();
+}
+
+function fillSelect(id, values, currentValue) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = '<option value="">All</option>';
+  let hasCurrentValue = false;
+  values.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    if (v === currentValue) { opt.selected = true; hasCurrentValue = true; }
+    sel.appendChild(opt);
+  });
+  // If only one option exists, auto-select it
+  if (values.length === 1) {
+    sel.value = values[0];
+  } else if (!hasCurrentValue) {
+    sel.value = '';
+  }
+}
+
+function sorted(set, comparator) {
+  const arr = [...set];
+  if (comparator) arr.sort(comparator);
+  else arr.sort();
+  return arr;
+}
+
+// --- Apply filters and get matching rows ---
+function getBaseFiltered() {
+  const unit = document.getElementById('filterUnit').value;
+  const semester = document.getElementById('filterSemester').value;
+  const year = document.getElementById('filterYear').value;
+  const mode = document.getElementById('filterMode').value;
+  const location = document.getElementById('filterLocation').value;
+
+  return rawData.filter(r => {
+    if (r.state !== 'Approved') return false;
+    const av = parseAvailability(r.availability);
+    if (!av) return false;
+    if (unit && av.unit !== unit) return false;
+    if (semester && av.semester !== semester) return false;
+    if (year && av.year !== year) return false;
+    if (mode && av.mode !== mode) return false;
+    if (location && av.location !== location) return false;
+    return true;
+  });
+}
+
+function updateAssessments() {
+  const filtered = getBaseFiltered();
+  const currentAssessment = document.getElementById('filterAssessment').value;
+
+  // Only include assessments that have at least one row with extension_in_calendar_days
+  const assessmentsWithExtensions = new Set();
+  filtered.forEach(r => {
+    if (r.extension_in_calendar_days && r.extension_in_calendar_days.trim()) {
+      assessmentsWithExtensions.add(r.assessment);
+    }
+  });
+
+  const sel = document.getElementById('filterAssessment');
+  sel.innerHTML = '<option value="">Select an assessment</option>';
+  const sortedAssessments = sorted(assessmentsWithExtensions);
+  let hasCurrentValue = false;
+  sortedAssessments.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    if (a === currentAssessment) { opt.selected = true; hasCurrentValue = true; }
+    sel.appendChild(opt);
+  });
+  // Auto-select if only one assessment available
+  if (sortedAssessments.length === 1) {
+    sel.value = sortedAssessments[0];
+  } else if (!hasCurrentValue) {
+    sel.value = '';
+  }
+
+  updateOutput();
+}
+
+// --- Generate output ---
+function updateOutput() {
+  const assessment = document.getElementById('filterAssessment').value;
+  const previewSection = document.getElementById('previewSection');
+  const btnDownload = document.getElementById('btnDownload');
+  const recordCount = document.getElementById('recordCount');
+
+  if (!assessment) {
+    filteredOutput = [];
+    previewSection.classList.add('hidden');
+    btnDownload.disabled = true;
+    recordCount.textContent = '';
+    return;
+  }
+
+  const filtered = getBaseFiltered();
+
+  // Filter for selected assessment + has extension date
+  const rows = filtered.filter(r =>
+    r.assessment === assessment &&
+    r.extension_in_calendar_days &&
+    r.extension_in_calendar_days.trim()
+  );
+
+  // Build output rows
+  filteredOutput = rows.map(r => {
+    const unikey = extractUniKey(r.u_ticket_contact);
+    const extDate = formatExtDate(r.extension_in_calendar_days);
+    const sectionName = r.assessment + ' - ' + extDate + ' - ' + r.u_outcome_type;
+    return { sectionName, unikey };
+  });
+
+  // Sort by UniKey alphabetically
+  filteredOutput.sort((a, b) => a.unikey.localeCompare(b.unikey));
+
+  // Deduplicate by unikey (keep the first encountered after sort)
+  const seen = new Map();
+  filteredOutput.forEach(r => {
+    if (!seen.has(r.unikey)) {
+      seen.set(r.unikey, r);
+    }
+  });
+  filteredOutput = [...seen.values()].sort((a, b) => a.unikey.localeCompare(b.unikey));
+
+  // Update UI
+  recordCount.textContent = filteredOutput.length + ' record' + (filteredOutput.length !== 1 ? 's' : '');
+  btnDownload.disabled = filteredOutput.length === 0;
+
+  // Preview
+  const tbody = document.getElementById('previewBody');
+  const previewCount = document.getElementById('previewCount');
+  tbody.innerHTML = '';
+  filteredOutput.forEach(r => {
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td');
+    const td2 = document.createElement('td');
+    td2.textContent = r.sectionName;
+    const td3 = document.createElement('td');
+    const td4 = document.createElement('td');
+    td4.className = 'font-medium';
+    td4.textContent = r.unikey;
+    tr.append(td1, td2, td3, td4);
+    tbody.appendChild(tr);
+  });
+  previewCount.textContent = filteredOutput.length + ' rows';
+  previewSection.classList.remove('hidden');
+  document.getElementById('liveStatus').textContent = filteredOutput.length + ' extension records found for ' + assessment + '.';
+}
+
+// --- Download CSV ---
+function downloadCSV() {
+  if (filteredOutput.length === 0) return;
+
+  let csv = '"Section Id","Section name","Student name","UniKey"\n';
+  filteredOutput.forEach(r => {
+    csv += '"",' + '"' + r.sectionName.replace(/"/g, '""') + '"' + ',"",' + '"' + r.unikey + '"\n';
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+
+  // Filename: SEAMS2_{assessment_underscored}_{YYYYMMDD}.csv
+  const assessment = document.getElementById('filterAssessment').value;
+  const safeName = assessment.replace(/[^a-zA-Z0-9]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  const today = new Date();
+  const dateStr = today.getFullYear() +
+    String(today.getMonth() + 1).padStart(2, '0') +
+    String(today.getDate()).padStart(2, '0');
+
+  a.href = url;
+  a.download = 'SEAMS2_' + safeName + '_' + dateStr + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// --- Event wiring ---
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+});
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) handleFile(fileInput.files[0]);
+});
+
+function handleFile(file) {
+  if (!file.name.endsWith('.csv')) {
+    alert('Please upload a CSV file.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    rawData = csvToObjects(e.target.result);
+    if (rawData.length === 0) {
+      alert('No data found in CSV.');
+      return;
+    }
+    dropzone.classList.add('loaded');
+    const loadMsg = file.name + ' \u2014 ' + rawData.length.toLocaleString() + ' rows loaded';
+    document.getElementById('dropzone-text').textContent = loadMsg;
+    document.getElementById('liveStatus').textContent = loadMsg + '. Filters are now available.';
+    document.getElementById('placeholderControls').classList.add('hidden');
+    document.getElementById('controls').classList.remove('hidden');
+    populateFilters();
+    updateAssessments();
+  };
+  reader.readAsText(file);
+}
+
+// Filter change handlers — cascade all dropdowns on any change
+['filterUnit', 'filterSemester', 'filterYear', 'filterMode', 'filterLocation'].forEach(id => {
+  document.getElementById(id).addEventListener('change', populateFilters);
+});
+document.getElementById('filterAssessment').addEventListener('change', updateOutput);
+document.getElementById('btnDownload').addEventListener('click', downloadCSV);
+document.getElementById('btnReset').addEventListener('click', () => {
+  rawData = [];
+  filteredOutput = [];
+  fileInput.value = '';
+  dropzone.classList.remove('loaded');
+  document.getElementById('dropzone-text').textContent = 'Drag & drop CSV here, or click to upload';
+  document.getElementById('controls').classList.add('hidden');
+  document.getElementById('previewSection').classList.add('hidden');
+  document.getElementById('placeholderControls').classList.remove('hidden');
+});
+</script>
+</body>
+</html>

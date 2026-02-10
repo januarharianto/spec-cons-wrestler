@@ -1,0 +1,6 @@
+# Data files — may contain student PII
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db
