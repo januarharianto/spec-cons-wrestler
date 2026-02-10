@@ -6,8 +6,8 @@ A client-side HTML tool that parses University of Sydney special considerations 
 
 You can use this tool in two ways.
 
-1. Open `index.html` directly in your browser (no server or install needed)
-2. Go to [januarharianto.github.io/spec-cons-wrestler](https://januarharianto.github.io/spec-cons-wrestler/)
+1. Download the project (Code → Download ZIP), unzip it and open index.html with any web browser. No internet connection is necessary.
+2. Go to [januarharianto.github.io/spec-cons-wrestler](https://januarharianto.github.io/spec-cons-wrestler/). 
 
 Then follow these steps.
 
