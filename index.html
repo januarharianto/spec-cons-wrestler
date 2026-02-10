@@ -149,7 +149,8 @@
     margin-bottom: 16px;
   }
 
-  .filter-group label {
+  .filter-group label,
+  .filter-group span {
     display: block;
     font-size: 11px;
     font-weight: 500;
@@ -183,7 +184,8 @@
     padding-top: 16px;
   }
 
-  .assessment-group label {
+  .assessment-group label,
+  .assessment-group span {
     display: block;
     font-size: 11px;
     font-weight: 500;
@@ -401,28 +403,28 @@
       <div class="filter-body">
         <div class="filters">
           <div class="filter-group">
-            <label>Unit</label>
+            <span>Unit</span>
             <select disabled><option>BIOL2022</option></select>
           </div>
           <div class="filter-group">
-            <label>Semester</label>
+            <span>Semester</span>
             <select disabled><option>S2C</option></select>
           </div>
           <div class="filter-group">
-            <label>Year</label>
+            <span>Year</span>
             <select disabled><option>2025</option></select>
           </div>
           <div class="filter-group">
-            <label>Mode</label>
+            <span>Mode</span>
             <select disabled><option>ND</option></select>
           </div>
           <div class="filter-group">
-            <label>Location</label>
+            <span>Location</span>
             <select disabled><option>CC</option></select>
           </div>
         </div>
         <div class="assessment-group">
-          <label>Assessment</label>
+          <span>Assessment</span>
           <select disabled><option>Written scientific report (Report 2)</option></select>
         </div>
       </div>
@@ -506,8 +508,8 @@
         <span class="table-subtitle" id="previewCount"></span>
       </div>
     </div>
-    <div class="table-wrap">
-      <table>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Extension records preview">
+      <table aria-label="SEAMS2 extension preview">
         <thead>
           <tr><th scope="col">Section Id</th><th scope="col">Section name</th><th scope="col">Student name</th><th scope="col">UniKey</th></tr>
         </thead>
@@ -583,20 +585,20 @@ function csvToObjects(text) {
 // --- Parse availability field: UNIT-SEMESTER-YEAR-MODE-LOCATION ---
 function parseAvailability(av) {
   const parts = av.split('-');
-  if (parts.length < 5) return null;
+  if (parts.length !== 5) return null;
   return {
     unit: parts[0],
     semester: parts[1],
     year: parts[2],
     mode: parts[3],
-    location: parts[parts.length - 1]
+    location: parts[4]
   };
 }
 
 // --- Extract UniKey from u_ticket_contact: "Name - unikey" ---
 function extractUniKey(contact) {
-  const match = contact.match(/- (\w+)$/);
-  return match ? match[1] : contact;
+  const match = contact.trim().match(/-\s*(\w+)$/);
+  return match ? match[1] : contact.trim();
 }
 
 // --- Format extension date: "DD-MM-YYYY" -> "Mon-DD" ---
@@ -606,6 +608,7 @@ function formatExtDate(dateStr) {
   if (parts.length < 3) return dateStr;
   const day = parseInt(parts[0], 10);
   const monthIdx = parseInt(parts[1], 10) - 1;
+  if (isNaN(day) || day < 1 || day > 31) return dateStr;
   if (monthIdx < 0 || monthIdx > 11) return dateStr;
   return MONTHS[monthIdx] + '-' + String(day).padStart(2, '0');
 }
@@ -769,7 +772,7 @@ function updateOutput() {
     const sectionName = r.assessment + ' - ' + extDate + ' - ' + r.u_outcome_type;
     // Parse DD-MM-YYYY to comparable YYYYMMDD for date ordering
     const dp = rawDate.split('-');
-    const dateKey = dp.length >= 3 ? dp[2] + dp[1] + dp[0] : '00000000';
+    const dateKey = dp.length >= 3 ? dp[2].padStart(4, '0') + dp[1].padStart(2, '0') + dp[0].padStart(2, '0') : '00000000';
     return { sectionName, unikey, dateKey };
   });
 
@@ -832,14 +835,14 @@ function downloadCSV() {
   a.href = url;
   a.download = 'SEAMS2_' + safeName + '_' + dateStr + '.csv';
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // --- Event wiring ---
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
 
-dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('click', () => { fileInput.value = ''; fileInput.click(); });
 dropzone.addEventListener('keydown', e => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
 });
@@ -859,11 +862,21 @@ function handleFile(file) {
     alert('Please upload a CSV file.');
     return;
   }
+  if (file.size > 10 * 1024 * 1024) {
+    alert('File is too large (max 10 MB).');
+    return;
+  }
   const reader = new FileReader();
   reader.onload = e => {
     rawData = csvToObjects(e.target.result);
     if (rawData.length === 0) {
       alert('No data found in CSV.');
+      return;
+    }
+    const required = ['state', 'availability', 'assessment', 'extension_in_calendar_days', 'u_ticket_contact', 'u_outcome_type'];
+    const missing = required.filter(c => !(c in rawData[0]));
+    if (missing.length) {
+      alert('Missing required columns: ' + missing.join(', '));
       return;
     }
     dropzone.classList.add('loaded');
@@ -873,7 +886,7 @@ function handleFile(file) {
     document.getElementById('placeholderControls').classList.add('hidden');
     document.getElementById('controls').classList.remove('hidden');
     populateFilters();
-    updateAssessments();
+    document.getElementById('filterUnit').focus();
   };
   reader.readAsText(file);
 }
@@ -893,6 +906,7 @@ document.getElementById('btnReset').addEventListener('click', () => {
   document.getElementById('controls').classList.add('hidden');
   document.getElementById('previewSection').classList.add('hidden');
   document.getElementById('placeholderControls').classList.remove('hidden');
+  document.getElementById('liveStatus').textContent = 'All data cleared. Upload a new CSV file.';
 });
 </script>
 </body>
