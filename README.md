@@ -1,6 +1,6 @@
 # Special Considerations Wrestler
 
-A client-side HTML tool that parses University of Sydney special considerations CSV exports and generates SEAMS2-compatible extension lists for upload.
+A *tiny (< 30 KB) client-side HTML tool that parses University of Sydney special considerations CSV exports and generates SEAMS2-compatible extension lists for upload.
 
 This tool is specific to the University of Sydney and its internal systems (ServiceNow, SEAMS2, Canvas). It will not be useful to anyone outside the university or anyone not involved in processing special considerations.
 
