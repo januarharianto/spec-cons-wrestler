@@ -569,6 +569,7 @@ function parseCSV(text) {
 }
 
 function csvToObjects(text) {
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   const rows = parseCSV(text);
   if (rows.length < 2) return [];
   const headers = rows[0];
@@ -612,12 +613,6 @@ function formatExtDate(dateStr) {
 // --- Populate filter dropdowns (cascading) ---
 // Each dropdown only shows values that exist in valid combination with the others.
 function populateFilters() {
-  const unit = document.getElementById('filterUnit').value;
-  const semester = document.getElementById('filterSemester').value;
-  const year = document.getElementById('filterYear').value;
-  const mode = document.getElementById('filterMode').value;
-  const location = document.getElementById('filterLocation').value;
-
   // Parse all approved rows into availability objects once
   const parsed = [];
   rawData.forEach(r => {
@@ -626,25 +621,37 @@ function populateFilters() {
     if (av) parsed.push({ av, row: r });
   });
 
-  // For each filter, collect valid values based on ALL OTHER current selections
+  // Read each value fresh after repopulating so the cascade uses up-to-date state
+  function currentValues() {
+    return {
+      unit: document.getElementById('filterUnit').value,
+      semester: document.getElementById('filterSemester').value,
+      year: document.getElementById('filterYear').value,
+      mode: document.getElementById('filterMode').value,
+      location: document.getElementById('filterLocation').value
+    };
+  }
+
   function validValues(field) {
+    const cv = currentValues();
     const vals = new Set();
     parsed.forEach(({ av }) => {
-      if (field !== 'unit' && unit && av.unit !== unit) return;
-      if (field !== 'semester' && semester && av.semester !== semester) return;
-      if (field !== 'year' && year && av.year !== year) return;
-      if (field !== 'mode' && mode && av.mode !== mode) return;
-      if (field !== 'location' && location && av.location !== location) return;
+      if (field !== 'unit' && cv.unit && av.unit !== cv.unit) return;
+      if (field !== 'semester' && cv.semester && av.semester !== cv.semester) return;
+      if (field !== 'year' && cv.year && av.year !== cv.year) return;
+      if (field !== 'mode' && cv.mode && av.mode !== cv.mode) return;
+      if (field !== 'location' && cv.location && av.location !== cv.location) return;
       vals.add(av[field]);
     });
     return vals;
   }
 
-  fillSelect('filterUnit', sorted(validValues('unit')), unit);
-  fillSelect('filterSemester', sorted(validValues('semester')), semester);
-  fillSelect('filterYear', sorted([...validValues('year')], (a, b) => b - a), year);
-  fillSelect('filterMode', sorted(validValues('mode')), mode);
-  fillSelect('filterLocation', sorted(validValues('location')), location);
+  const cv = currentValues();
+  fillSelect('filterUnit', sorted(validValues('unit')), cv.unit);
+  fillSelect('filterSemester', sorted(validValues('semester')), cv.semester);
+  fillSelect('filterYear', sorted([...validValues('year')], (a, b) => b - a), cv.year);
+  fillSelect('filterMode', sorted(validValues('mode')), cv.mode);
+  fillSelect('filterLocation', sorted(validValues('location')), cv.location);
 
   // Update assessments based on the now-valid filter combination
   updateAssessments();
@@ -754,21 +761,23 @@ function updateOutput() {
     r.extension_in_calendar_days.trim()
   );
 
-  // Build output rows
+  // Build output rows, keeping raw date for dedup comparison
   filteredOutput = rows.map(r => {
     const unikey = extractUniKey(r.u_ticket_contact);
-    const extDate = formatExtDate(r.extension_in_calendar_days);
+    const rawDate = r.extension_in_calendar_days.trim();
+    const extDate = formatExtDate(rawDate);
     const sectionName = r.assessment + ' - ' + extDate + ' - ' + r.u_outcome_type;
-    return { sectionName, unikey };
+    // Parse DD-MM-YYYY to comparable YYYYMMDD for date ordering
+    const dp = rawDate.split('-');
+    const dateKey = dp.length >= 3 ? dp[2] + dp[1] + dp[0] : '00000000';
+    return { sectionName, unikey, dateKey };
   });
 
-  // Sort by UniKey alphabetically
-  filteredOutput.sort((a, b) => a.unikey.localeCompare(b.unikey));
-
-  // Deduplicate by unikey (keep the first encountered after sort)
+  // Deduplicate by unikey, keeping the latest extension date
   const seen = new Map();
   filteredOutput.forEach(r => {
-    if (!seen.has(r.unikey)) {
+    const existing = seen.get(r.unikey);
+    if (!existing || r.dateKey > existing.dateKey) {
       seen.set(r.unikey, r);
     }
   });
